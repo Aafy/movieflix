@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import "./App.css";
 import Search from "./components/Search";
 import Spinner from "./components/Spinner";
+import MovieCard from "./components/MovieCard";
 import type { Movie } from "./models/movieflix.model";
+import { useDebounce } from "react-use";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 
@@ -22,11 +24,17 @@ function App() {
   const [errorMessage, setErrorMessage] = useState("");
   const [movieList, setMovieList] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const fetchMovies = async () => {
+  const [debouncedSearchTerm, setDeboucedSearchTerm] = useState("");
+
+  useDebounce(() => setDeboucedSearchTerm(searchTerm), 500, [searchTerm]);
+
+  const fetchMovies = async (query = "") => {
     setIsLoading(true);
     setErrorMessage("");
     try {
-      const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+      const endpoint = query
+        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
+        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
       const response = await fetch(endpoint, API_OPTIONS);
       if (!response.ok) {
         throw new Error("Failed to fetch movies");
@@ -48,8 +56,8 @@ function App() {
   };
 
   useEffect(() => {
-    fetchMovies();
-  }, []); //Only run when the component loads exactly once
+    fetchMovies(debouncedSearchTerm);
+  }, [debouncedSearchTerm]); //[] - empty array - Only run when the component loads exactly once
   return (
     <>
       <main>
@@ -74,9 +82,7 @@ function App() {
             ) : (
               <ul>
                 {movieList.map((movie) => (
-                  <p key={movie.id} className="text-white">
-                    {movie.title}
-                  </p>
+                  <MovieCard movie={movie} key={movie.id} />
                 ))}
               </ul>
             )}
