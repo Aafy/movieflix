@@ -5,6 +5,7 @@ import Spinner from "./components/Spinner";
 import MovieCard from "./components/MovieCard";
 import type { Movie } from "./models/movieflix.model";
 import { useDebounce } from "react-use";
+import { getTrendingMovies, updateSearchCount } from "./apprwrite";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 
@@ -25,6 +26,7 @@ function App() {
   const [movieList, setMovieList] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [debouncedSearchTerm, setDeboucedSearchTerm] = useState("");
+  const [trendingMovies, setTrendingMovies] = useState([]);
 
   useDebounce(() => setDeboucedSearchTerm(searchTerm), 500, [searchTerm]);
 
@@ -47,6 +49,9 @@ function App() {
         return;
       }
       setMovieList(data.results || []);
+      if (data.results.length > 0 && query) {
+        await updateSearchCount(query, data.results[0]);
+      }
     } catch (error) {
       setErrorMessage(`Error fetching movies. Please try again later.`);
       console.error(`Error fetching movies: ${error}`);
@@ -55,9 +60,22 @@ function App() {
     }
   };
 
+  const loadTrendingMovies = async () => {
+    try {
+      const movies = await getTrendingMovies();
+      setTrendingMovies(movies as any);
+    } catch (error) {
+      console.log(`Error fetching trending movies: ${error}`);
+    }
+  };
+
+  useEffect(() => {
+    loadTrendingMovies();
+  }, []); // empty array - Only run when the component loads exactly once
+
   useEffect(() => {
     fetchMovies(debouncedSearchTerm);
-  }, [debouncedSearchTerm]); //[] - empty array - Only run when the component loads exactly once
+  }, [debouncedSearchTerm]);
   return (
     <>
       <main>
@@ -72,8 +90,28 @@ function App() {
             <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           </header>
 
+          {trendingMovies.length > 0 && (
+            <section className="trending">
+              <h2>Trending Movies</h2>
+
+              <ul>
+                {trendingMovies.map(
+                  (
+                    movie: { $id: string; poster_url: string; title: string },
+                    index
+                  ) => (
+                    <li key={movie.$id}>
+                      <p>{index + 1}</p>
+                      <img src={movie.poster_url} alt={movie.title} />
+                    </li>
+                  )
+                )}
+              </ul>
+            </section>
+          )}
+
           <section className="all-movies">
-            <h2 className="mt-[40px]">All Movies</h2>
+            <h2>All Movies</h2>
 
             {isLoading ? (
               <Spinner />
