@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import "./App.css";
 import Search from "./components/Search";
 import Spinner from "./components/Spinner";
+import type { Movie } from "./models/movieflix.model";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 
-const API_KEY =
-  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjNjYwNTgwMDI5Y2ZmMDIwZmM5MjM1YmNlZDlmY2NmZiIsIm5iZiI6MTc1MTQ1NzI2NC40NDcsInN1YiI6IjY4NjUxZGYwNDBlMWYyMzA5NTZhYTBjNyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.myRrG4PYskBjY7J4rHCP98EIuGVhxJ4HIFIG-6mKqKs";
-// import.meta.env.VITE_TMDB_API_KEY;
+// create .env file in the root folder and add the api key for VITE_TMDB_API_KEY
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 const API_OPTIONS = {
   method: "GET",
@@ -20,7 +20,7 @@ const API_OPTIONS = {
 function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [movieList, setMovieList] = useState([]);
+  const [movieList, setMovieList] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const fetchMovies = async () => {
     setIsLoading(true);

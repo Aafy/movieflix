@@ -1,6 +1,7 @@
 import { useState } from "react";
+import type { CardProps } from "../models/movieflix.model";
 
-function Card(props: any) {
+function Card(props: CardProps) {
   const [hasLiked, setLiked] = useState(false);
   const { title } = props;
   return (
